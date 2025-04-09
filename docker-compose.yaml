@@ -1,0 +1,40 @@
+version: '3.5'
+services:
+  postgres:
+    image: postgis/postgis:14-3.3-alpine
+    container_name: gdrive-uploader_postgres_db
+    ports:
+      - '5432:5432'
+    networks:
+      - network
+    volumes:
+      - 'postgres_data:/var/lib/postgresql/data'
+    environment:
+      POSTGRES_DB: gdrive-uploader
+      POSTGRES_USER_FILE: /run/secrets/postgres-user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+    secrets:
+      - postgres-user
+      - postgres-password
+
+networks:
+  network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mysql_data:
+
+secrets:
+  postgres-user:
+    file: ./.secrets/postgres-user
+  postgres-password:
+    file: ./.secrets/postgres-password
+  jwt-secret-access-token:
+    file: ./.secrets/jwt-secret-access-token
+  jwt-secret-refresh-token:
+    file: ./.secrets/jwt-secret-refresh-token
+  swagger-username:
+    file: ./.secrets/swagger-username
+  swagger-password:
+    file: ./.secrets/swagger-password
