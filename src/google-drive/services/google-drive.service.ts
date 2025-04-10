@@ -8,6 +8,7 @@ import { BadRequestException, Injectable, Inject } from '@nestjs/common';
 import { ErrorTypeEnum } from 'src/common/enums';
 
 import { SelectDriveFileto } from 'src/modules/files/dto';
+import { FileEntity } from 'src/modules/files/entities';
 
 import { GOOGLE_DRIVE_MODULE_OPTIONS } from '../google-drive.constants';
 import { GoogleDriveModuleOptions } from '../interfaces';
@@ -56,18 +57,18 @@ export class GoogleDriveService {
    * Maximum file size: 5,120 GB
    * @link https://developers.google.com/workspace/drive/api/reference/rest/v3/files/create
    */
-  public async createOneByUrl(fileUrl: string): Promise<drive_v3.Schema$File> {
+  public async createOneByUrl(url: string): Promise<drive_v3.Schema$File> {
     try {
-      const name = await this.getFileNameFromUrl(fileUrl);
-      const fileStream = got.stream(fileUrl);
+      const metadata = await this.getFileMetaFromUrl(url);
+      const fileStream = got.stream(url);
 
       const driveFile = await this.drive.files.create({
         requestBody: {
           parents: [this.options.folder],
-          name,
+          name: metadata.name,
         },
         media: {
-          mimeType: 'application/octet-stream',
+          mimeType: metadata.mimetype,
           body: fileStream,
         },
       });
@@ -93,11 +94,13 @@ export class GoogleDriveService {
 
   /**
    * [description]
-   * @param fileUrl
+   * @param url
    */
-  public async getFileNameFromUrl(fileUrl: string): Promise<string> {
-    const fileOptions = await got.head(fileUrl);
-    const contentDisposition = fileOptions.headers['content-disposition'];
+  public async getFileMetaFromUrl(url: string): Promise<Partial<FileEntity>> {
+    const metadata = await got.head(url);
+    const contentDisposition = metadata.headers['content-disposition'];
+    const mimetype = metadata.headers['content-type'];
+    let name: string;
 
     if (contentDisposition) {
       const match = /filename\*=UTF-8''(.+)|filename="(.+)"|filename=(.+)/.exec(
@@ -105,13 +108,18 @@ export class GoogleDriveService {
       );
 
       if (match) {
-        return decodeURIComponent(match[1] || match[2] || match[3]).replace(
+        name = decodeURIComponent(match[1] || match[2] || match[3]).replace(
           /['"]/g,
           '',
         );
       }
+    } else {
+      name = path.basename(new URL(url).pathname);
     }
 
-    return path.basename(new URL(fileUrl).pathname);
+    return {
+      mimetype,
+      name,
+    };
   }
 }
