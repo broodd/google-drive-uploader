@@ -38,3 +38,9 @@ secrets:
     file: ./.secrets/swagger-username
   swagger-password:
     file: ./.secrets/swagger-password
+  google-drive-folder:
+    file: ./.secrets/google-drive-folder
+  google-drive-client-email:
+    file: ./.secrets/google-drive-client-email
+  google-drive-private-key:
+    file: ./.secrets/google-drive-private-key

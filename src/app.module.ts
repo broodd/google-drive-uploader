@@ -11,6 +11,7 @@ import { Module } from '@nestjs/common';
 import { ConfigService, ConfigModule } from './config';
 import { AppController } from './app.controller';
 import './database/polyfill';
+import { FilesModule } from './modules/files';
 import { DatabaseModule } from './database';
 
 /**
@@ -34,6 +35,7 @@ import { DatabaseModule } from './database';
     }),
     DatabaseModule,
     ConfigModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
