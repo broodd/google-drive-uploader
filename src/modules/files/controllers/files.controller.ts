@@ -2,35 +2,51 @@ import {
   ClassSerializerInterceptor,
   UseInterceptors,
   Controller,
+  Delete,
+  Param,
+  Query,
+  Body,
   Post,
   Get,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { GoogleDriveService } from 'src/google-drive/services';
+
+import {
+  CreateFileByUrlResponseDto,
+  CreateFilesByUrlsDto,
+} from '../dto/create-files-by-urls.dto';
+import { PaginationFilesDto, SelectDriveFileto, SelectFilesDto } from '../dto';
+import { FilesService } from '../services';
+import { FileEntity } from '../entities';
 
 /**
  * [description]
  */
 @ApiTags('files')
 @Controller('files')
+@UseInterceptors(ClassSerializerInterceptor)
 export class FilesController {
   /**
    * [description]
    * @param filesService
-   * @param googleDriveService
    */
-  constructor(private readonly googleDriveService: GoogleDriveService) {}
+  constructor(private readonly filesService: FilesService) {}
 
   /**
    * Maximum file size: 5,120 GB
-   * @param options
+   * @param data
    * @link https://developers.google.com/workspace/drive/api/reference/rest/v3/files/create
    */
   @Post()
-  public async createOne(): Promise<any> {
-    return this.googleDriveService.createOne(
-      'https://www.hostinger.co.uk/tutorials/wp-content/uploads/sites/2/2022/07/the-structure-of-a-url.png',
+  @ApiOperation({ summary: 'Upload files to drive' })
+  @ApiResponse({ type: () => CreateFileByUrlResponseDto, isArray: true })
+  public async createManyByUrls(
+    @Body() data: CreateFilesByUrlsDto,
+  ): Promise<CreateFileByUrlResponseDto[]> {
+    return Promise.allSettled(
+      data.urls.map((url) => this.filesService.createOneAndUploadByUrl(url)),
     );
   }
 
@@ -39,7 +55,24 @@ export class FilesController {
    * @param options
    */
   @Get()
-  public async selectMany(): Promise<any> {
-    return this.googleDriveService.selectMany();
+  @ApiOperation({ summary: 'Select files from database' })
+  @ApiResponse({ type: () => PaginationFilesDto })
+  public async selectManyAndCount(
+    @Query() options: SelectFilesDto,
+  ): Promise<PaginationFilesDto> {
+    return this.filesService.selectManyAndCount(options);
+  }
+
+  /**
+   * [description]
+   * @param conditions
+   */
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete file from database and drive' })
+  @ApiResponse({ type: () => FileEntity })
+  public async deleteOneFromDrive(
+    @Param() conditions: SelectDriveFileto,
+  ): Promise<FileEntity> {
+    return this.filesService.deleteOne(conditions);
   }
 }

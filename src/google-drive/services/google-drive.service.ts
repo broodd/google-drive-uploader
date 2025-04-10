@@ -1,10 +1,13 @@
-import { Readable } from 'node:stream';
 import path from 'node:path';
 
 import { drive_v3, google } from 'googleapis';
 import got from 'got';
 
-import { Injectable, Inject } from '@nestjs/common';
+import { BadRequestException, Injectable, Inject } from '@nestjs/common';
+
+import { ErrorTypeEnum } from 'src/common/enums';
+
+import { SelectDriveFileto } from 'src/modules/files/dto';
 
 import { GOOGLE_DRIVE_MODULE_OPTIONS } from '../google-drive.constants';
 import { GoogleDriveModuleOptions } from '../interfaces';
@@ -38,64 +41,77 @@ export class GoogleDriveService {
   }
 
   /**
-   * [description]
-   * @returns
+   * Generate error in format
+   * @param error
    */
-  async createOne(fileUrl): Promise<drive_v3.Schema$File> {
-    const fileName = await this.getFileNameFromUrl(fileUrl);
-    const fileStream = got.stream(fileUrl);
-
-    const uploadedFile = await this.drive.files.create({
-      requestBody: {
-        parents: [this.options.folder],
-        name: fileName,
-      },
-      media: {
-        mimeType: 'application/octet-stream',
-        body: fileStream,
-      },
+  private throwError(error): never {
+    throw new BadRequestException({
+      message: ErrorTypeEnum.API_INVALID_DATA,
+      error: error.response.data,
     });
+  }
 
-    return uploadedFile.data;
+  /**
+   * Upload file to Google Drive
+   * Maximum file size: 5,120 GB
+   * @link https://developers.google.com/workspace/drive/api/reference/rest/v3/files/create
+   */
+  public async createOneByUrl(fileUrl: string): Promise<drive_v3.Schema$File> {
+    try {
+      const name = await this.getFileNameFromUrl(fileUrl);
+      const fileStream = got.stream(fileUrl);
+
+      const driveFile = await this.drive.files.create({
+        requestBody: {
+          parents: [this.options.folder],
+          name,
+        },
+        media: {
+          mimeType: 'application/octet-stream',
+          body: fileStream,
+        },
+      });
+
+      return driveFile.data;
+    } catch (error) {
+      this.throwError(error);
+    }
   }
 
   /**
    * [description]
    */
-  async selectMany(): Promise<drive_v3.Schema$File[]> {
-    const res = await this.drive.files.list({
-      pageSize: 10,
-      fields: 'files(id, name, webViewLink)',
-    });
-    return res.data.files;
+  public async deleteOne(conditions: SelectDriveFileto): Promise<void> {
+    try {
+      await this.drive.files.delete({
+        fileId: conditions.id,
+      });
+    } catch (error) {
+      this.throwError(error);
+    }
   }
 
   /**
    * [description]
    * @param fileUrl
    */
-  async getFileNameFromUrl(fileUrl: string): Promise<string> {
-    try {
-      const fileOptions = await got.head(fileUrl);
-      const contentDisposition = fileOptions.headers['content-disposition'];
+  public async getFileNameFromUrl(fileUrl: string): Promise<string> {
+    const fileOptions = await got.head(fileUrl);
+    const contentDisposition = fileOptions.headers['content-disposition'];
 
-      if (contentDisposition) {
-        const match =
-          /filename\*=UTF-8''(.+)|filename="(.+)"|filename=(.+)/.exec(
-            contentDisposition,
-          );
+    if (contentDisposition) {
+      const match = /filename\*=UTF-8''(.+)|filename="(.+)"|filename=(.+)/.exec(
+        contentDisposition,
+      );
 
-        if (match) {
-          return decodeURIComponent(match[1] || match[2] || match[3]).replace(
-            /['"]/g,
-            '',
-          );
-        }
+      if (match) {
+        return decodeURIComponent(match[1] || match[2] || match[3]).replace(
+          /['"]/g,
+          '',
+        );
       }
-
-      return path.basename(new URL(fileUrl).pathname);
-    } catch {
-      return null;
     }
+
+    return path.basename(new URL(fileUrl).pathname);
   }
 }

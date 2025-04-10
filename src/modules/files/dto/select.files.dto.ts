@@ -1,7 +1,7 @@
 import { IsOptional, MaxLength, MinLength } from 'class-validator';
 import { FindOneOptions, ILike } from 'typeorm';
 
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 import { FindManyOptionsDto } from 'src/common/dto';
 
@@ -17,14 +17,14 @@ export class SelectFilesDto extends FindManyOptionsDto<FileEntity> {
   @IsOptional()
   @MinLength(1)
   @MaxLength(256)
-  @ApiProperty()
-  public readonly filename?: string;
+  @ApiPropertyOptional()
+  public readonly name?: string;
 
   /**
    * [description]
    */
   public get whereBrackets(): FindOneOptions['where'] {
-    const { filename } = this;
-    return Object.assign({}, filename && { filename: ILike(`%${filename}%`) });
+    const { name } = this;
+    return Object.assign({}, name && { name: ILike(`%${name}%`) });
   }
 }

@@ -15,10 +15,17 @@ export class FileEntity extends CommonEntity {
    */
   @Expose()
   @ApiProperty({ readOnly: true })
-  get src(): string {
-    // const publicUrl = `https://drive.google.com/uc?id=${response.data.id}&export=download`;
+  get driveUrl(): string {
+    return `https://drive.google.com/file/d/${this.key}/view?usp=drivesdk`;
+  }
 
-    return `${process.env.CDN}/${this.key}`;
+  /**
+   * [description]
+   */
+  @Expose()
+  @ApiProperty({ readOnly: true })
+  get src(): string {
+    return `https://drive.google.com/uc?id=${this.key}`;
   }
 
   /**
@@ -33,14 +40,7 @@ export class FileEntity extends CommonEntity {
    */
   @Column({ type: 'varchar', length: 256, nullable: true })
   @ApiProperty({ maxLength: 256, nullable: true })
-  public readonly filename: string;
-
-  /**
-   * [description]
-   */
-  @Column({ type: 'bigint', nullable: true })
-  @ApiProperty({ minimum: 1, nullable: true })
-  public readonly fileSize: string;
+  public readonly name: string;
 
   /**
    * [description]
@@ -48,18 +48,4 @@ export class FileEntity extends CommonEntity {
   @Column({ type: 'varchar', length: 256, nullable: true })
   @ApiProperty({ maxLength: 256, nullable: true })
   public readonly mimetype: string;
-
-  /**
-   * [description]
-   */
-  @Column({ type: 'varchar', length: 7, nullable: true })
-  @ApiProperty({ maxLength: 7, nullable: true })
-  public readonly encoding: string;
-
-  /**
-   * [description]
-   */
-  @Column({ type: 'varchar', length: 256, nullable: true })
-  @ApiProperty({ maxLength: 256, nullable: true })
-  public readonly extname: string;
 }

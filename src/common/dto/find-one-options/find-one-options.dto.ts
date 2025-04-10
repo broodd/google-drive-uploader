@@ -9,7 +9,7 @@ import {
 import { Transform, Exclude, Expose } from 'class-transformer';
 import { FindOptionsSelect } from 'typeorm';
 
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 import { stringArrayToNestedObject } from 'src/common/helpers';
 import { FindOneBracketsOptions } from 'src/common/interfaces';
@@ -37,7 +37,7 @@ export class FindOneOptionsDto<Entity>
   @IsNotEmpty({ each: true })
   @Exclude({ toPlainOnly: true })
   @Transform(({ value }) => [].concat(value))
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: [String],
     example: [],
     description: 'Specifies what columns should be retrieved',
@@ -61,7 +61,7 @@ export class FindOneOptionsDto<Entity>
    */
   @IsOptional()
   @IsBooleanString()
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: 'boolean',
     description: 'Indicates what relations of entity should be loaded',
   })
@@ -84,7 +84,7 @@ export class FindOneOptionsDto<Entity>
   @IsNotEmpty({ each: true })
   @Matches(JOIN_RELATIONS_REGEX, { each: true })
   @Transform(({ value }) => [].concat(value))
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: [String],
     example: [],
     description:
@@ -101,7 +101,7 @@ export class FindOneOptionsDto<Entity>
   @IsNotEmpty({ each: true })
   @Matches(JOIN_RELATIONS_REGEX, { each: true })
   @Transform(({ value }) => [].concat(value))
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: [String],
     example: [],
     description: 'Specifies what relations should NOT be retrieved',

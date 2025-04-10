@@ -1,8 +1,16 @@
-import { IsNotEmpty, IsOptional, MaxLength, IsString, IsArray, Max, Min } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  MaxLength,
+  IsString,
+  IsArray,
+  Max,
+  Min,
+} from 'class-validator';
 import { Transform, Exclude, Expose } from 'class-transformer';
 import { FindOneOptions } from 'typeorm';
 
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
 import { FindManyBracketsOptions } from 'src/common/interfaces';
 
@@ -24,7 +32,7 @@ export class FindManyOptionsDto<Entity>
   @IsNotEmpty({ each: true })
   @MaxLength(64, { each: true })
   @Transform(({ value }) => [].concat(value))
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: [String],
     description: `Order, in which entities should be ordered. For order by relation field use <i>elation.field</i>`,
   })
@@ -39,7 +47,7 @@ export class FindManyOptionsDto<Entity>
   @IsNotEmpty({ each: true })
   @MaxLength(64, { each: true })
   @Transform(({ value }) => [].concat(value))
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: [String],
     description:
       'If the same fields are specified for sorting in two directions, the priority is given to DESC',
@@ -70,7 +78,7 @@ export class FindManyOptionsDto<Entity>
   @Min(1)
   @IsOptional()
   @Exclude({ toPlainOnly: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
     example: 1,
     description: 'Offset (paginated) where from entities should be taken',
@@ -84,7 +92,7 @@ export class FindManyOptionsDto<Entity>
   @Max(100)
   @IsOptional()
   @Exclude({ toPlainOnly: true })
-  @ApiProperty({
+  @ApiPropertyOptional({
     type: String,
     example: 5,
     default: 50,

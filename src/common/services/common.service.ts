@@ -38,8 +38,6 @@ export class CommonService<EntityClass extends CommonEntity, PaginationClass> {
    * @param entityClass
    * @param repository
    * @param paginationClass
-   * @param storageService
-   * @param filesService
    * @param errorPrefix
    */
   constructor(

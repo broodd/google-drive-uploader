@@ -5,6 +5,7 @@ import { GoogleDriveModule } from 'src/google-drive/google-drive.module';
 import { ConfigService } from 'src/config';
 
 import { FilesController } from './controllers';
+import { FilesService } from './services';
 import { FileEntity } from './entities';
 
 /**
@@ -25,7 +26,7 @@ import { FileEntity } from './entities';
     }),
   ],
   controllers: [FilesController],
-  providers: [],
-  exports: [],
+  providers: [FilesService],
+  exports: [FilesService],
 })
 export class FilesModule {}
